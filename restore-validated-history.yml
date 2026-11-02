@@ -1,0 +1,104 @@
+name: Restore validated history
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/restore-validated-history.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: restore-validated-history
+  cancel-in-progress: false
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out bootstrap
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Download and verify exact bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="$(tr -d '\r\n' < URL_TEST.txt)"
+          test -n "$url"
+          curl --fail --location --silent --show-error \
+            --retry 4 --retry-delay 2 --retry-all-errors \
+            "$url" \
+            --output "$RUNNER_TEMP/history.bundle.b64.txt"
+          echo "081d4de5dedab4e60b4fdeae250f0be8ed740472dfad9f0579a4bd09099dfd67  $RUNNER_TEMP/history.bundle.b64.txt" | sha256sum -c -
+          base64 --decode "$RUNNER_TEMP/history.bundle.b64.txt" > "$RUNNER_TEMP/history.bundle"
+          echo "beac4be24ade1caefcb8de46f1fc517eb6dcced2acf233ce0617eb08d3903f6e  $RUNNER_TEMP/history.bundle" | sha256sum -c -
+          git bundle verify "$RUNNER_TEMP/history.bundle"
+
+      - name: Verify complete history and files
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="5f6cbc79445e0f7442c7a013c56b668112e6a6a8"
+          git clone "$RUNNER_TEMP/history.bundle" "$RUNNER_TEMP/restored"
+          test "$(git -C "$RUNNER_TEMP/restored" rev-parse refs/heads/release-b-c-d-completion)" = "$target"
+
+          cat > "$RUNNER_TEMP/expected-tags.txt" <<'EOF'
+          f13f30bda72680792ef577f8c24cabf53943f528 refs/tags/automated-validation-complete
+          5f6cbc79445e0f7442c7a013c56b668112e6a6a8 refs/tags/external-validation-ci-ready
+          0f1d8bc1eff81eedc95950434a281e262156ce46 refs/tags/phase0-complete
+          09d758ca89d0c32a0961da1da43431e903c017ad refs/tags/release-a1-complete
+          7d3f54f7ddb456b1ec881e1c3116a8133a68b148 refs/tags/release-a2-complete
+          62ee70623ae07021b51fa4092cbee55068aee954 refs/tags/release-a3-automation-checkpoint
+          25565cfce105d992e655ae0ac76cdb734ae338b1 refs/tags/release-a3-external-validation-kit
+          7670e2e78460ae79ad149e40b4380cb4f7f51469 refs/tags/release-b-complete
+          628801e828ffea89b6342afd604bbf524687382c refs/tags/release-c-complete
+          c81a76843e4734168f7cd026d1e2751527c9f399 refs/tags/release-d-complete
+          caf28d5bb27debf61a3216750eac6498a95f49c9 refs/tags/v2.3.4-baseline
+          EOF
+          sed -i 's/^          //' "$RUNNER_TEMP/expected-tags.txt"
+          git -C "$RUNNER_TEMP/restored" show-ref --tags | LC_ALL=C sort -k2 > "$RUNNER_TEMP/actual-tags.txt"
+          diff -u "$RUNNER_TEMP/expected-tags.txt" "$RUNNER_TEMP/actual-tags.txt"
+          ! git -C "$RUNNER_TEMP/restored" show-ref --verify --quiet refs/tags/release-a3-complete
+
+          git -C "$RUNNER_TEMP/restored" cat-file -e "$target:.github/workflows/external-os-validation.yml"
+          for file in \
+            build/icon.png \
+            docs/effect-live-preview-screen.png \
+            docs/image-editor-screen.png \
+            docs/jpg-transparency-screen.png \
+            docs/settings-screen.png \
+            docs/size-manager-screen.png
+          do
+            git -C "$RUNNER_TEMP/restored" cat-file -e "$target:$file"
+          done
+
+          git -C "$RUNNER_TEMP/restored" fsck --full --no-progress
+
+      - name: Atomically replace main and publish all tags
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          target="5f6cbc79445e0f7442c7a013c56b668112e6a6a8"
+          remote="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          git_auth=( -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" )
+
+          current="$(git "${git_auth[@]}" ls-remote "$remote" refs/heads/main | cut -f1)"
+          test "$current" = "$GITHUB_SHA"
+
+          git -C "$RUNNER_TEMP/restored" "${git_auth[@]}" push --atomic "$remote" \
+            refs/heads/release-b-c-d-completion:refs/heads/main \
+            'refs/tags/*:refs/tags/*' \
+            --force-with-lease="refs/heads/main:${GITHUB_SHA}"
+
+          restored_main="$(git "${git_auth[@]}" ls-remote "$remote" refs/heads/main | cut -f1)"
+          test "$restored_main" = "$target"
+          test "$(git "${git_auth[@]}" ls-remote --tags "$remote" | grep -v '\^{}$' | wc -l | tr -d ' ')" = "11"
