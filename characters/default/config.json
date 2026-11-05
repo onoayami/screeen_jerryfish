@@ -1,0 +1,73 @@
+{
+  "name": "サンプルくらげ",
+  "mascot": {
+    "size": 180,
+    "startPosition": "bottom-right",
+    "margin": 40,
+    "rememberPosition": true
+  },
+  "actions": [
+    {
+      "name": "休む",
+      "file": "actions/rest.svg",
+      "weight": 4,
+      "durationMs": [5000, 9000],
+      "movement": {
+        "type": "still",
+        "speed": 0
+      }
+    },
+    {
+      "name": "歩く",
+      "file": "actions/walk.svg",
+      "weight": 3,
+      "durationMs": [6000, 11000],
+      "flipMode": "direction",
+      "movement": {
+        "type": "horizontal",
+        "speed": 55
+      },
+      "effect": {
+        "file": "effects/footprint.svg",
+        "intervalMs": 450,
+        "size": 30,
+        "lifetimeMs": 1800,
+        "offsetX": 0,
+        "offsetY": 12,
+        "coordinateVersion": 2,
+        "emitWhileStill": false
+      }
+    },
+    {
+      "name": "飛ぶ",
+      "file": "actions/fly.svg",
+      "weight": 2,
+      "durationMs": [4500, 8000],
+      "flipMode": "direction",
+      "movement": {
+        "type": "wander",
+        "speed": 90
+      }
+    },
+    {
+      "name": "歌う",
+      "file": "actions/sing.svg",
+      "weight": 1,
+      "durationMs": [3000, 5000],
+      "movement": {
+        "type": "still",
+        "speed": 0
+      },
+      "effect": {
+        "file": "effects/note.svg",
+        "intervalMs": 700,
+        "size": 34,
+        "lifetimeMs": 1600,
+        "offsetX": 58,
+        "offsetY": 130,
+        "coordinateVersion": 2,
+        "emitWhileStill": true
+      }
+    }
+  ]
+}

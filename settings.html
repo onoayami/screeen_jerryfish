@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' file: data:; style-src 'self'; script-src 'self'; connect-src 'none'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>マスコット設定</title>
+    <link rel="stylesheet" href="settings.css" />
+    <script src="settings.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-mark" aria-hidden="true">🪼</div>
+        <div class="brand-copy">
+          <h1>マスコット設定</h1>
+          <p>画像を置いて、動き方を選ぶだけで設定できます。</p>
+        </div>
+        <span id="save-state" class="save-state">読み込み中</span>
+      </header>
+
+      <section id="recovery-panel" class="recovery-panel" aria-labelledby="recovery-heading" hidden>
+        <div>
+          <h2 id="recovery-heading">設定を安全に復旧できます</h2>
+          <p id="recovery-message">設定ファイルを読み込めません。</p>
+          <small>元のconfig.jsonは自動で上書きしません。初期設定へ戻しても、追加した画像は削除しません。</small>
+        </div>
+        <div class="recovery-actions">
+          <button id="recovery-backup" class="secondary-button" type="button">直前の正常な設定へ戻す</button>
+          <button id="recovery-defaults" class="danger-button" type="button">初期設定へ戻す</button>
+        </div>
+      </section>
+
+      <main class="workspace">
+        <aside class="sidebar" aria-label="マスコットと動作の一覧">
+          <section class="panel global-panel" aria-labelledby="global-heading">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">全体設定</p>
+                <h2 id="global-heading">マスコット</h2>
+              </div>
+            </div>
+
+            <label class="field">
+              <span>名前</span>
+              <input id="mascot-name" type="text" maxlength="80" placeholder="マスコットの名前" />
+            </label>
+
+            <label class="field">
+              <span class="field-label-row">表示サイズ <output id="mascot-size-output">180 px</output></span>
+              <input id="mascot-size" type="range" min="32" max="1000" step="1" />
+            </label>
+
+            <label class="field">
+              <span>最初の位置</span>
+              <select id="start-position">
+                <option value="bottom-right">右下</option>
+                <option value="bottom-left">左下</option>
+                <option value="top-right">右上</option>
+                <option value="top-left">左上</option>
+                <option value="center">中央</option>
+              </select>
+            </label>
+
+            <label class="check-row">
+              <input id="remember-position" type="checkbox" />
+              <span>ドラッグした位置を記憶する</span>
+            </label>
+          </section>
+
+          <section class="actions-panel" aria-labelledby="actions-heading">
+            <div class="section-heading actions-heading-row">
+              <div>
+                <p class="eyebrow">動作の種類</p>
+                <h2 id="actions-heading">アクション</h2>
+              </div>
+              <button id="add-action" class="icon-button" type="button" aria-label="動作を追加">＋</button>
+            </div>
+            <p class="action-weight-help">1〜10の整数で設定します。数字が大きいほど長期の選択回数が増え、同じ動作が連続することがあります。</p>
+            <button id="open-size-manager" class="sidebar-tool-button" type="button">▦ 全画像の大きさを揃える</button>
+            <button id="open-duration-bulk" class="sidebar-tool-button" type="button">⏱ 表示時間を一括設定</button>
+            <ul id="action-list" class="action-list" aria-label="登録した動作"></ul>
+          </section>
+        </aside>
+
+        <section class="editor" aria-label="選択した動作の設定">
+          <div id="empty-state" class="empty-state" hidden>
+            <div class="empty-icon" aria-hidden="true">🖼️</div>
+            <h2>動作を追加してください</h2>
+            <p>左側の＋ボタンから、最初の動作を作成できます。</p>
+          </div>
+
+          <div id="action-editor" class="editor-content" hidden>
+            <div class="editor-heading">
+              <div class="editor-name-block">
+                <label for="action-name" class="eyebrow">選択中の動作</label>
+                <input id="action-name" class="editor-name-input" type="text" maxlength="80" placeholder="動作の名前" />
+              </div>
+              <div class="editor-tools" aria-label="動作の並び替えと削除">
+                <button id="move-up" class="secondary-button compact-button" type="button">↑ 上へ</button>
+                <button id="move-down" class="secondary-button compact-button" type="button">↓ 下へ</button>
+                <button id="delete-action" class="danger-button compact-button" type="button">削除</button>
+              </div>
+            </div>
+
+            <section class="panel editor-card" aria-labelledby="appearance-heading">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">STEP 1</p>
+                  <h3 id="appearance-heading">画像と表示設定</h3>
+                </div>
+              </div>
+
+              <div class="image-and-fields">
+                <div class="image-control-stack">
+                  <button id="action-dropzone" class="dropzone" type="button" aria-label="キャラクター画像を選ぶ、またはドロップする">
+                    <span id="action-preview-frame" class="dropzone-preview-frame" hidden>
+                      <img id="action-preview" alt="キャラクター画像のプレビュー" />
+                    </span>
+                    <span id="action-placeholder" class="dropzone-placeholder">
+                      <span class="dropzone-icon" aria-hidden="true">＋</span>
+                      <strong>画像をドロップ</strong>
+                      <small>またはクリックして選択</small>
+                      <small>GIF・PNG・WebP・SVG・JPG</small>
+                    </span>
+                  </button>
+                  <button id="image-edit-button" class="secondary-button image-edit-button" type="button">✂︎ トリミング・拡大縮小</button>
+                </div>
+
+                <div class="fields-stack">
+                  <div class="field-grid two-columns aligned-field-grid">
+                    <label class="field">
+                      <span>選ばれやすさ</span>
+                      <input id="action-weight" type="number" min="1" max="10" step="1" inputmode="numeric" />
+                    </label>
+                    <label class="field">
+                      <span>反転設定</span>
+                      <select id="flip-direction">
+                        <option value="direction">向きに合わせて反転する</option>
+                        <option value="none">向きに合わせて反転しない</option>
+                        <option value="random">自由に反転する</option>
+                      </select>
+                    </label>
+                  </div>
+                  <p class="inline-help">選ばれやすさは選択回数の重みです。数字が大きいほど選ばれやすく、同じ動作が連続することがあります。表示時間は別に設定します。</p>
+
+                  <div class="field-grid two-columns aligned-field-grid">
+                    <label class="field">
+                      <span>最短時間（秒）</span>
+                      <input id="duration-min" type="number" min="0.5" max="600" step="0.5" />
+                    </label>
+                    <label class="field">
+                      <span>最長時間（秒）</span>
+                      <input id="duration-max" type="number" min="0.5" max="600" step="0.5" />
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel editor-card" aria-labelledby="movement-heading">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">STEP 2</p>
+                  <h3 id="movement-heading">動き方</h3>
+                </div>
+              </div>
+
+              <div class="field-grid movement-grid">
+                <label class="field">
+                  <span>移動方法</span>
+                  <select id="movement-type">
+                    <option value="still">その場に留まる</option>
+                    <option value="horizontal">画面下部を左右に歩く</option>
+                    <option value="wander">画面内を自由に動く</option>
+                    <option value="fall">画面上から降ってくる</option>
+                    <option value="launch">画面下から発射される</option>
+                    <option value="orthogonal">画面を縦横に動く</option>
+                  </select>
+                </label>
+
+                <label class="field speed-field">
+                  <span class="field-label-row">速さ <output id="speed-output">55</output></span>
+                  <input id="movement-speed" type="range" min="0" max="2000" step="1" />
+                </label>
+              </div>
+            </section>
+
+            <section class="panel editor-card" aria-labelledby="effect-heading">
+              <div class="section-heading effect-heading-row">
+                <div>
+                  <p class="eyebrow">STEP 3・任意</p>
+                  <h3 id="effect-heading">追従エフェクト</h3>
+                </div>
+                <label class="switch-row">
+                  <span>使う</span>
+                  <input id="effect-enabled" type="checkbox" role="switch" />
+                </label>
+              </div>
+
+              <p class="section-description">足跡・光・音符など、好きな画像を動作ごとに追加できます。</p>
+
+              <div id="effect-settings" class="effect-settings" hidden>
+                <div class="effect-preview-column">
+                  <div id="effect-live-preview" class="effect-live-preview" aria-label="追従エフェクトの表示位置プレビュー">
+                    <div id="effect-live-mascot" class="effect-live-mascot">
+                      <img id="effect-live-mascot-image" alt="キャラクターのプレビュー" />
+                    </div>
+                    <img id="effect-live-image" class="effect-live-image" alt="エフェクトの表示位置" hidden />
+                    <span class="effect-preview-badge">実際の発生位置</span>
+                  </div>
+                  <p class="effect-preview-note">実際に出現する瞬間の位置です。横位置・縦位置・大きさを変えると、すぐに同じ位置へ動きます。</p>
+                  <button id="effect-dropzone" class="dropzone small-dropzone compact-effect-dropzone" type="button" aria-label="エフェクト画像を選ぶ、またはドロップする">
+                    <img id="effect-preview" alt="エフェクト画像のプレビュー" hidden />
+                    <span id="effect-placeholder" class="dropzone-placeholder">
+                      <span class="dropzone-icon" aria-hidden="true">＋</span>
+                      <strong>エフェクト画像</strong>
+                      <small>ドロップまたはクリック</small>
+                      <small>JPGは透明PNGへ変換できます</small>
+                    </span>
+                  </button>
+                </div>
+
+                <div class="effect-fields">
+                  <div class="field-grid three-columns">
+                    <label class="field">
+                      <span>間隔（秒）</span>
+                      <input id="effect-interval" type="number" min="0.05" max="60" step="0.05" />
+                    </label>
+                    <label class="field">
+                      <span>大きさ（px）</span>
+                      <input id="effect-size" type="number" min="4" max="1000" step="1" />
+                    </label>
+                    <label class="field">
+                      <span>消えるまで（秒）</span>
+                      <input id="effect-lifetime" type="number" min="0.05" max="60" step="0.05" />
+                    </label>
+                  </div>
+
+                  <div class="field-grid three-columns">
+                    <label class="field">
+                      <span>横位置（＋で右）</span>
+                      <input id="effect-offset-x" type="number" min="-5000" max="5000" step="1" />
+                    </label>
+                    <label class="field">
+                      <span>縦位置（＋で上）</span>
+                      <input id="effect-offset-y" type="number" min="-5000" max="5000" step="1" />
+                    </label>
+                    <label class="check-card">
+                      <input id="effect-while-still" type="checkbox" />
+                      <span>停止中も表示</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+      </main>
+
+      <footer class="actionbar">
+        <p id="feedback" class="feedback" aria-live="polite">変更すると、ここに保存状態が表示されます。</p>
+        <div class="footer-actions">
+          <button id="prepare-release-button" class="secondary-button" type="button" hidden>配布版へ反映</button>
+          <button id="reload-button" class="secondary-button" type="button">変更を破棄</button>
+          <button id="save-button" class="primary-button" type="button">保存して反映</button>
+        </div>
+      </footer>
+    </div>
+
+    <dialog id="size-manager-dialog" class="jpeg-dialog size-manager-dialog" aria-labelledby="size-manager-title">
+      <div class="jpeg-dialog-card">
+        <header class="jpeg-dialog-header">
+          <div>
+            <p class="eyebrow">全画像プレビュー</p>
+            <h2 id="size-manager-title">画面上の大きさを揃える</h2>
+          </div>
+          <button id="size-manager-close" class="dialog-close" type="button" aria-label="閉じる">×</button>
+        </header>
+        <p class="jpeg-dialog-description">
+          基準にする画像を1つ選び「基準画像に自動で揃える」を押すと、基準画像以外の大きさと位置が揃います（基準画像は変わりません）。各カードでは拡大率を調整したり、画像をドラッグして位置を直せます。
+        </p>
+        <div class="size-manager-toolbar">
+          <span id="size-manager-status" aria-live="polite">画像を測定しています…</span>
+          <button id="size-manager-auto" class="secondary-button" type="button">基準画像に自動で揃える</button>
+        </div>
+        <div id="size-manager-grid" class="size-manager-grid" aria-label="全画像の表示サイズ一覧"></div>
+        <footer class="jpeg-dialog-actions">
+          <button id="size-manager-cancel" class="secondary-button" type="button">キャンセル</button>
+          <button id="size-manager-apply" class="secondary-button" type="button">この大きさを使う</button>
+          <button id="size-manager-save" class="primary-button" type="button">保存して反映</button>
+        </footer>
+      </div>
+    </dialog>
+
+    <dialog id="duration-bulk-dialog" class="jpeg-dialog duration-bulk-dialog" aria-labelledby="duration-bulk-title">
+      <div class="jpeg-dialog-card">
+        <header class="jpeg-dialog-header">
+          <div>
+            <p class="eyebrow">一括設定</p>
+            <h2 id="duration-bulk-title">表示時間を一括設定</h2>
+          </div>
+        </header>
+        <p class="jpeg-dialog-description">すべての動作の、最短時間と最長時間をまとめて設定します。</p>
+        <div class="field-grid two-columns duration-bulk-fields">
+          <label class="field">
+            <span>最短時間（秒）</span>
+            <input id="duration-bulk-min" type="number" min="0.5" max="600" step="0.5" />
+          </label>
+          <label class="field">
+            <span>最長時間（秒）</span>
+            <input id="duration-bulk-max" type="number" min="0.5" max="600" step="0.5" />
+          </label>
+        </div>
+        <p id="duration-bulk-count" class="duration-bulk-count" aria-live="polite"></p>
+        <p id="duration-bulk-error" class="duration-bulk-error" role="alert" hidden></p>
+        <footer class="jpeg-dialog-actions">
+          <button id="duration-bulk-cancel" class="secondary-button" type="button">キャンセル</button>
+          <button id="duration-bulk-apply" class="secondary-button" type="button">この時間を使う</button>
+          <button id="duration-bulk-save" class="primary-button" type="button">保存して反映</button>
+        </footer>
+      </div>
+    </dialog>
+
+    <dialog id="image-editor-dialog" class="jpeg-dialog image-editor-dialog" aria-labelledby="image-editor-title">
+      <div class="jpeg-dialog-card">
+        <header class="jpeg-dialog-header">
+          <div>
+            <p class="eyebrow">画像調整</p>
+            <h2 id="image-editor-title">トリミング・拡大縮小</h2>
+          </div>
+          <button id="image-editor-close" class="dialog-close" type="button" aria-label="閉じる">×</button>
+        </header>
+
+        <p class="jpeg-dialog-description">
+          正方形の表示枠を見ながら、画像をドラッグして位置を動かせます。元ファイルは変更せず、GIFの動きも残ります。「全画像の大きさを揃える」を実行すると、基準画像以外の拡大率と位置は自動で上書きされます。
+        </p>
+
+        <div class="image-editor-layout">
+          <div id="image-editor-preview-frame" class="image-editor-preview" aria-label="トリミング結果のプレビュー">
+            <img id="image-editor-preview" alt="調整中の画像" />
+          </div>
+
+          <div class="jpeg-controls">
+            <label class="field">
+              <span class="field-label-row">拡大・縮小 <output id="image-scale-output">100%</output></span>
+              <input id="image-scale" type="range" min="0.3" max="3" step="0.01" value="1" />
+            </label>
+            <label class="field">
+              <span class="field-label-row">左右の位置 <output id="image-offset-x-output">0</output></span>
+              <input id="image-offset-x" type="range" min="-100" max="100" step="0.01" value="0" />
+            </label>
+            <label class="field">
+              <span class="field-label-row">上下の位置 <output id="image-offset-y-output">0</output></span>
+              <input id="image-offset-y" type="range" min="-100" max="100" step="0.01" value="0" />
+            </label>
+            <div class="converter-note">
+              <strong>トリミングについて</strong>
+              <p>市松模様の四角からはみ出した部分が非表示になります。縮小すると、画像の周りに透明な余白を作れます。</p>
+            </div>
+          </div>
+        </div>
+
+        <footer class="jpeg-dialog-actions">
+          <button id="image-editor-cancel" class="secondary-button" type="button">キャンセル</button>
+          <button id="image-editor-reset" class="secondary-button" type="button">元に戻す</button>
+          <button id="image-editor-apply" class="primary-button" type="button">この調整を使う</button>
+        </footer>
+      </div>
+    </dialog>
+
+    <dialog id="jpeg-dialog" class="jpeg-dialog" aria-labelledby="jpeg-dialog-title">
+      <div class="jpeg-dialog-card">
+        <header class="jpeg-dialog-header">
+          <div>
+            <p class="eyebrow">JPG 背景透過</p>
+            <h2 id="jpeg-dialog-title">背景を透明なPNGに変換</h2>
+          </div>
+          <button id="jpeg-dialog-close" class="dialog-close" type="button" aria-label="閉じる">×</button>
+        </header>
+
+        <p class="jpeg-dialog-description">
+          JPG自体には透明部分を保存できないため、背景色を取り除いたPNGをアプリ内で作ります。単色や白背景の画像に向いています。
+        </p>
+
+        <div class="jpeg-converter-layout">
+          <div class="transparency-preview" aria-label="背景透過のプレビュー">
+            <canvas id="jpeg-canvas"></canvas>
+          </div>
+
+          <div class="jpeg-controls">
+            <label class="field">
+              <span>消したい背景色</span>
+              <div class="color-control-row">
+                <input id="jpeg-background-color" class="color-input" type="color" value="#ffffff" />
+                <button id="jpeg-detect-color" class="secondary-button compact-button" type="button">四隅から自動判定</button>
+              </div>
+            </label>
+
+            <label class="field">
+              <span class="field-label-row">背景を消す強さ <output id="jpeg-tolerance-output">45</output></span>
+              <input id="jpeg-tolerance" type="range" min="0" max="180" step="1" value="45" />
+            </label>
+
+            <label class="field">
+              <span class="field-label-row">境界のなめらかさ <output id="jpeg-feather-output">20</output></span>
+              <input id="jpeg-feather" type="range" min="0" max="80" step="1" value="20" />
+            </label>
+
+            <div class="converter-note">
+              <strong>きれいに抜くコツ</strong>
+              <p>背景に近い色がキャラクター内にもある場合は「強さ」を少し下げてください。写真のような複雑な背景は、専用の切り抜きツールの方が適しています。</p>
+            </div>
+          </div>
+        </div>
+
+        <footer class="jpeg-dialog-actions">
+          <button id="jpeg-cancel" class="secondary-button" type="button">キャンセル</button>
+          <button id="jpeg-use-original" class="secondary-button" type="button">背景付きのまま使う</button>
+          <button id="jpeg-convert" class="primary-button" type="button">透明PNGに変換</button>
+        </footer>
+      </div>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  </body>
+</html>

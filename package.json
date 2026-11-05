@@ -1,0 +1,71 @@
+{
+  "name": "desktop-mascot-ui",
+  "productName": "Desktop Mascot",
+  "version": "2.3.4",
+  "description": "A transparent desktop mascot with never-lost screen recovery, verified live apply, effect preview, and no-code image editing",
+  "author": "YOUR NAME",
+  "license": "MIT",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "check": "node scripts/check-config.js && node scripts/check-release-text.js",
+    "check:release-text": "node scripts/check-release-text.js",
+    "test:smoke": "electron scripts/smoke-native-image.js",
+    "package:source": "npm run check && python3 scripts/create-source-zip.py",
+    "build:mac": "npm run check:build-lock && npm run check && electron-builder --mac --publish never",
+    "build:mac:arm64": "npm run check:build-lock && npm run check && electron-builder --mac --arm64 --publish never",
+    "build:mac:x64": "npm run check:build-lock && npm run check && electron-builder --mac --x64 --publish never",
+    "build:mac:universal": "npm run check:build-lock && npm run check && electron-builder --mac --universal --publish never",
+    "test:phase0:harness": "node --test tests/phase0/harness.test.mjs",
+    "test:phase0:known-defects": "node --test tests/phase0/known-defects.test.mjs",
+    "test:phase0": "npm run test:phase0:harness && npm run test:phase0:known-defects",
+    "test:release-a1": "node --test tests/release-a1/*.test.mjs",
+    "test:release-a2": "node --test tests/release-a2/*.test.mjs",
+    "test:release-a3": "node --test tests/release-a3/*.test.mjs",
+    "test:release-b": "node --test tests/release-b/*.test.mjs",
+    "test:release-c": "node --test tests/release-c/*.test.mjs",
+    "test:release-d": "node --test tests/release-d/*.test.mjs",
+    "test:automated": "npm run check && npm run test:phase0:harness && npm run test:phase0:known-defects && npm run test:release-a1 && npm run test:release-a2 && npm run test:release-a3 && npm run test:release-b && npm run test:release-c && npm run test:release-d",
+    "check:build-lock": "node scripts/check-build-lock.js"
+  },
+  "devDependencies": {
+    "electron": "latest",
+    "electron-builder": "latest"
+  },
+  "build": {
+    "appId": "com.example.desktopmascot",
+    "productName": "Desktop Mascot",
+    "asar": true,
+    "artifactName": "${productName}-${version}-${arch}.${ext}",
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "preload-mascot.js",
+      "index.html",
+      "style.css",
+      "renderer.js",
+      "settings.html",
+      "settings.css",
+      "settings.js",
+      "shared/**/*",
+      "characters/default/**/*"
+    ],
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.entertainment",
+      "icon": "build/icon.png",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false
+    },
+    "dmg": {
+      "title": "${productName} ${version}"
+    }
+  }
+}

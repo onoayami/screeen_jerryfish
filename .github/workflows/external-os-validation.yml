@@ -1,0 +1,216 @@
+name: External OS validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - release-b-c-d-completion
+
+permissions:
+  contents: read
+
+concurrency:
+  group: external-os-validation-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "22"
+  PYTHON_VERSION: "3.13"
+  SOURCE_ARCHIVE: desktop-mascot-ui-v2.3.4-external-validation.zip
+  SOURCE_ROOT: desktop-mascot-ui-v2.3.4
+
+jobs:
+  source-package:
+    name: Deterministic source archive
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out the complete source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Build and compare two deterministic archives
+        shell: bash
+        run: |
+          set -euo pipefail
+          result="$RUNNER_TEMP/source-validation"
+          mkdir -p "$result"
+          python3 scripts/create-source-zip.py \
+            --root . \
+            --output "$result/first.zip" \
+            --prefix "$SOURCE_ROOT"
+          python3 scripts/create-source-zip.py \
+            --root . \
+            --output "$result/second.zip" \
+            --prefix "$SOURCE_ROOT"
+          cmp "$result/first.zip" "$result/second.zip"
+          cp "$result/first.zip" "$result/$SOURCE_ARCHIVE"
+          sha256sum "$result/$SOURCE_ARCHIVE" | tee "$result/source-archive-sha256.txt"
+
+      - name: Upload deterministic source archive
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deterministic-source-archive
+          path: ${{ runner.temp }}/source-validation
+          if-no-files-found: error
+          retention-days: 14
+
+  windows-native-extraction:
+    name: Windows native ZIP extraction
+    needs: source-package
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Download deterministic source archive
+        uses: actions/download-artifact@v4
+        with:
+          name: deterministic-source-archive
+          path: ${{ runner.temp }}/source-artifact
+
+      - name: Expand and validate with Windows tools
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $Zip = Join-Path '${{ runner.temp }}/source-artifact' $env:SOURCE_ARCHIVE
+          $Extract = Join-Path '${{ runner.temp }}' 'windows-extracted'
+          $Result = Join-Path '${{ runner.temp }}' 'windows-validation'
+          New-Item -ItemType Directory -Force -Path $Extract, $Result | Out-Null
+          Expand-Archive -LiteralPath $Zip -DestinationPath $Extract -Force
+          $Root = Join-Path $Extract $env:SOURCE_ROOT
+          if (-not (Test-Path -LiteralPath $Root -PathType Container)) {
+            throw "Expected source root was not extracted: $Root"
+          }
+          & (Join-Path $Root 'A3-Windows解凍確認.ps1') -ResultPath (Join-Path $Result 'windows-extraction-validation.txt')
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Get-FileHash -Algorithm SHA256 -LiteralPath $Zip |
+            Format-List | Out-File -Encoding utf8 (Join-Path $Result 'source-archive-sha256.txt')
+          @(
+            'Automated evidence: PowerShell Expand-Archive and strict UTF-8/NFC checks passed.'
+            'Manual pending: Windows Explorer drag-and-drop extraction on a user machine.'
+          ) | Set-Content -Encoding utf8 (Join-Path $Result 'manual-boundaries.txt')
+
+      - name: Upload Windows evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-extraction-evidence
+          path: ${{ runner.temp }}/windows-validation
+          if-no-files-found: error
+          retention-days: 14
+
+  macos-native-extraction-and-build:
+    name: macOS dependency candidate and unsigned build
+    needs: source-package
+    runs-on: macos-latest
+    timeout-minutes: 90
+    steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Download deterministic source archive
+        uses: actions/download-artifact@v4
+        with:
+          name: deterministic-source-archive
+          path: ${{ runner.temp }}/source-artifact
+
+      - name: Extract, test, and build on macOS
+        shell: bash
+        run: |
+          set -euo pipefail
+          zip_path="$RUNNER_TEMP/source-artifact/$SOURCE_ARCHIVE"
+          extract_root="$RUNNER_TEMP/macos-extracted"
+          source_root="$extract_root/$SOURCE_ROOT"
+          candidate="$RUNNER_TEMP/macos-candidate"
+          result="$RUNNER_TEMP/macos-validation"
+          mkdir -p "$extract_root" "$candidate" "$result"
+
+          /usr/bin/ditto -x -k "$zip_path" "$extract_root"
+          node "$source_root/scripts/inspect-a3-extraction.mjs" \
+            --root "$source_root" \
+            --output "$result/extracted-source.json"
+          /usr/bin/shasum -a 256 "$zip_path" | tee "$result/source-archive-sha256.txt"
+          {
+            echo "UTC: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+            /usr/bin/sw_vers
+            echo "CPU: $(uname -m)"
+            echo "Node: $(node --version)"
+            echo "npm: $(npm --version)"
+          } > "$result/mac-environment.txt"
+
+          /usr/bin/rsync -a --delete "$source_root/" "$candidate/"
+          cd "$candidate"
+          npm install --package-lock-only --ignore-scripts --save-exact --save-dev electron@latest electron-builder@latest \
+            2>&1 | tee "$result/dependency-candidate.log"
+          cp package.json "$result/candidate-package.json"
+          cp package-lock.json "$result/candidate-package-lock.json"
+          npm run check:build-lock 2>&1 | tee "$result/dependency-lock-check.log"
+          node - <<'NODE' > "$result/dependency-candidate.json"
+          const packageJson = require('./package.json');
+          const lock = require('./package-lock.json');
+          const names = ['electron', 'electron-builder'];
+          process.stdout.write(`${JSON.stringify({
+            node: process.version,
+            npm: process.env.npm_config_user_agent || null,
+            cpu: process.arch,
+            dependencies: Object.fromEntries(names.map((name) => [name, {
+              declared: packageJson.devDependencies?.[name] ?? null,
+              resolved: lock.packages?.[`node_modules/${name}`]?.version ?? null,
+            }])),
+          }, null, 2)}\n`);
+          NODE
+
+          npm ci 2>&1 | tee "$result/npm-ci.log"
+          npm install --no-save --no-package-lock playwright@1.63.0 \
+            2>&1 | tee "$result/playwright-package.log"
+          npx playwright install chromium 2>&1 | tee "$result/playwright-browser.log"
+          export CHROMIUM_PATH="$(node -e "const { chromium } = require('playwright'); process.stdout.write(chromium.executablePath())")"
+          printf 'CHROMIUM_PATH=%s\n' "$CHROMIUM_PATH" > "$result/browser-path.txt"
+          npm run test:automated 2>&1 | tee "$result/automated-tests.log"
+
+          env CSC_IDENTITY_AUTO_DISCOVERY=false npm run build:mac:universal \
+            2>&1 | tee "$result/unsigned-universal-build.log"
+          dmg_count="$(find dist -type f -name '*.dmg' | wc -l | tr -d ' ')"
+          if [ "$dmg_count" -lt 1 ]; then
+            echo 'No DMG was produced.' >&2
+            exit 1
+          fi
+          : > "$result/dmg-verification.log"
+          find dist -type f -name '*.dmg' | LC_ALL=C sort | while IFS= read -r dmg; do
+            echo "=== ${dmg#dist/} ===" | tee -a "$result/dmg-verification.log"
+            /usr/bin/hdiutil verify "$dmg" 2>&1 | tee -a "$result/dmg-verification.log"
+          done
+          : > "$result/app-architectures.log"
+          find dist -path '*.app/Contents/MacOS/*' -type f | LC_ALL=C sort | while IFS= read -r binary; do
+            echo "=== ${binary#dist/} ===" | tee -a "$result/app-architectures.log"
+            /usr/bin/file "$binary" | tee -a "$result/app-architectures.log"
+            /usr/bin/lipo -archs "$binary" 2>&1 | tee -a "$result/app-architectures.log" || true
+          done
+          find dist -type f -exec /usr/bin/shasum -a 256 {} \; \
+            | LC_ALL=C sort > "$result/build-artifact-sha256.txt"
+          cat > "$result/manual-boundaries.txt" <<'EOF'
+          Automated evidence does not complete these manual checks:
+          - launch and interaction on a physical Mac
+          - launch on both Apple Silicon and Intel Macs
+          - launch on the minimum supported macOS version
+          - Developer ID signing, Apple notarization, and Gatekeeper assessment
+          - Windows Explorer and macOS Archive Utility GUI extraction
+          EOF
+
+      - name: Upload macOS evidence and unsigned artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-validation-evidence
+          path: |
+            ${{ runner.temp }}/macos-validation
+            ${{ runner.temp }}/macos-candidate/dist
+          if-no-files-found: warn
+          retention-days: 14

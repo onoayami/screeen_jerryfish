@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="歩くくらげ">
+  <defs>
+    <linearGradient id="bell" x1="0" y1="0" x2=".85" y2="1">
+      <stop offset="0" stop-color="#c8f1ff"/>
+      <stop offset=".58" stop-color="#c8f1ff"/>
+      <stop offset="1" stop-color="#8ca9eb"/>
+    </linearGradient>
+    <linearGradient id="tentacles" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#aee0fb"/>
+      <stop offset="1" stop-color="#758fdf"/>
+    </linearGradient>
+  </defs>
+  <g>
+    <animateTransform attributeName="transform" type="translate" values="0 1;0 -4;0 1" dur="1.1s" repeatCount="indefinite"/>
+
+    <g fill="url(#tentacles)" stroke="#6488de" stroke-width="3.6" stroke-linejoin="round" opacity=".94">
+      <path d="M57 132 C57 151 50 165 42 177 C35 188 35 196 42 197 C53 198 65 182 69 165 C72 152 72 141 71 134 Z"/>
+      <path d="M77 135 C78 157 70 177 65 193 C61 205 67 212 76 205 C86 195 88 174 90 154 L90 136 Z"/>
+      <path d="M97 137 C99 162 93 186 91 211 C90 223 98 227 105 218 C112 202 111 174 112 139 Z"/>
+      <path d="M116 139 C115 166 115 196 118 221 C120 233 129 234 132 222 C135 198 130 165 130 139 Z"/>
+      <path d="M135 138 C139 166 142 194 150 215 C154 226 163 225 164 214 C164 197 153 168 149 137 Z"/>
+      <path d="M153 136 C158 157 165 178 177 195 C184 205 192 201 188 190 C181 170 171 151 168 133 Z"/>
+      <path d="M171 132 C181 151 192 161 202 176 C209 187 216 183 212 173 C203 153 192 139 186 126 Z"/>
+    </g>
+    <g fill="none" stroke="#e4faff" stroke-width="2.6" stroke-linecap="round" opacity=".58">
+      <path d="M101 148 C103 172 98 195 98 213"/>
+      <path d="M122 149 C121 175 122 202 125 222"/>
+      <path d="M141 148 C145 174 150 199 157 216"/>
+      <path d="M80 147 C81 165 75 185 71 197"/>
+    </g>
+
+    <path d="M31 122 C31 97 40 75 56 57 C72 41 94 34 118 33 C146 31 171 39 188 58 C203 75 210 98 209 120 C209 132 203 141 194 145 C184 150 177 142 166 143 C153 144 150 152 137 151 C128 150 125 143 117 144 C106 144 103 152 91 151 C80 150 77 143 67 144 C55 146 49 151 40 145 C32 141 28 132 31 122 Z" fill="url(#bell)" stroke="#5f88df" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M37 119 C38 94 47 75 62 60 C77 46 96 40 117 39 C143 37 165 45 179 60" fill="none" stroke="#efffff" stroke-width="5" stroke-linecap="round" opacity=".28"/>
+    <path d="M43 127 C47 140 55 141 67 139 C78 137 81 145 91 146 C103 147 106 139 117 139 C127 139 130 146 138 146 C150 147 154 139 166 138 C178 138 184 145 194 139" fill="none" stroke="#e8fbff" stroke-width="4.5" stroke-linecap="round" opacity=".72"/>
+    <path d="M56 68 C45 82 41 101 44 119 C46 131 55 134 63 124 C71 113 71 95 77 80 C82 68 70 59 56 68 Z" fill="#f3ffff" opacity=".34"/>
+    <path d="M83 53 C96 46 108 45 118 42 C114 56 108 67 99 76 C91 84 78 80 76 70 C74 63 78 57 83 53 Z" fill="#f4ffff" opacity=".54"/>
+    <path d="M121 42 C128 55 137 66 149 73 C158 78 169 74 171 65 C173 57 166 52 159 48 C147 42 134 40 121 42 Z" fill="#f4ffff" opacity=".64"/>
+    <path d="M88 42 C104 37 124 36 142 39" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" opacity=".52"/>
+
+    <g fill="#354667">
+      <ellipse cx="88" cy="102" rx="4.8" ry="5.6"/>
+      <ellipse cx="153" cy="101" rx="4.8" ry="5.6"/>
+    </g>
+    <path d="M108 116 C116 124 126 124 134 115" fill="none" stroke="#354667" stroke-width="4.7" stroke-linecap="round"/>
+    <ellipse cx="75" cy="116" rx="10" ry="5" fill="#f0a9c7" opacity=".28"/>
+    <ellipse cx="166" cy="115" rx="10" ry="5" fill="#f0a9c7" opacity=".28"/>
+  </g>
+</svg>

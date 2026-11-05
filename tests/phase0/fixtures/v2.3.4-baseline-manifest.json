@@ -1,0 +1,182 @@
+[
+  {
+    "path": ".gitignore",
+    "size": 51,
+    "sha256": "d59949d29992037ef004bafd95f8628bd8e7dfcb61b0380a8da91d24e0cd2bd4"
+  },
+  {
+    "path": "LICENSE",
+    "size": 1066,
+    "sha256": "198cab342ae561bead2179cc8c59c57f0265b06f131c1e8257e109367b978c07"
+  },
+  {
+    "path": "README.md",
+    "size": 4976,
+    "sha256": "561f30e832827e3a94416a6dc5b42056ff5d0f972d661327363ef19b994c7d4a"
+  },
+  {
+    "path": "START_HERE.txt",
+    "size": 2330,
+    "sha256": "1ef0a47fc7224531857308d049f125ebfc92fd0ecb259e1d715fabbf63743716"
+  },
+  {
+    "path": "THIRD_PARTY_NOTICES.md",
+    "size": 449,
+    "sha256": "ba06b736171bd724a88fc9334b5e174c61d467c841371f3dd14f255c6e39471b"
+  },
+  {
+    "path": "build/icon.png",
+    "size": 175720,
+    "sha256": "90905df4de8603018ebc17e44c62c5f3db88f6ab54b64c965b577520d7418d72"
+  },
+  {
+    "path": "build-mac.command",
+    "size": 363,
+    "sha256": "6d49cc84456c9bc77c57478d9f4669456b2c9d5540c2f7337ce18bcc9f361cc8"
+  },
+  {
+    "path": "characters/default/actions/fly.svg",
+    "size": 3465,
+    "sha256": "375c78ac83de81f383181855e52fc7f918cdd6723d29a3fa1b9ff235438e1f14"
+  },
+  {
+    "path": "characters/default/actions/rest.svg",
+    "size": 3545,
+    "sha256": "715635b074972bf2444dba3cb23c9f2b9190263273778e57c39ebed558c28b50"
+  },
+  {
+    "path": "characters/default/actions/sing.svg",
+    "size": 3544,
+    "sha256": "edd04d261405ecd219c1c9f77ecb60fbf9e57de994f9607626d9fabdf7e7cbe1"
+  },
+  {
+    "path": "characters/default/actions/walk.svg",
+    "size": 3572,
+    "sha256": "09e574342afd81921e049c4d02bee77115ee43e52a267b5f8b265c9f9a940585"
+  },
+  {
+    "path": "characters/default/config.json",
+    "size": 1531,
+    "sha256": "a7bac528a31d3240ab6e802157bcc510391885c80ae790ea45cb7b50017ae97d"
+  },
+  {
+    "path": "characters/default/effects/footprint.svg",
+    "size": 188,
+    "sha256": "84d645be7506b43488ba80914c3b039720d606a771487b64ae75c100cec29f4f"
+  },
+  {
+    "path": "characters/default/effects/note.svg",
+    "size": 228,
+    "sha256": "20481c4c89f8fc4ab0e575437b856bce2e22893feac7c542c1db93397833f808"
+  },
+  {
+    "path": "docs/01_最短で動かす.md",
+    "size": 2425,
+    "sha256": "194a3c7966290612729fe33cc31c8fdf2c4932ddbe77d7850bf393d4f971a713"
+  },
+  {
+    "path": "docs/02_画像と動きの設定.md",
+    "size": 9006,
+    "sha256": "948abe9947ff00f29fa5f9d4924eba81949f92ebb77b65332b9690d8f70bc371"
+  },
+  {
+    "path": "docs/03_Macアプリの作成と配布.md",
+    "size": 6330,
+    "sha256": "9c9f52b3e73be6a4fe3062d176823c856ed47dec450616c10b24ac41c55bdd4c"
+  },
+  {
+    "path": "docs/04_利用者向け説明書.md",
+    "size": 2598,
+    "sha256": "12cdc590e010df23ac832a75cff1985fda04c8e7d6a133c1d8db1664ae0dab4b"
+  },
+  {
+    "path": "docs/05_配布前チェックリスト.md",
+    "size": 2290,
+    "sha256": "a6ee6af418b98cf199822870e149859a6036f3b42a49ec6cfab1e8bac46ce487"
+  },
+  {
+    "path": "docs/effect-live-preview-screen.png",
+    "size": 64426,
+    "sha256": "dabad82777e554a10d622a2fa46f1e4362a6cdfd453f7ca2c69cf6658e7c75ee"
+  },
+  {
+    "path": "docs/image-editor-screen.png",
+    "size": 163070,
+    "sha256": "41c841b672d5ab3892e215405daa19009509d5d6c27b2651a17e9ace7de84357"
+  },
+  {
+    "path": "docs/jpg-transparency-screen.png",
+    "size": 157050,
+    "sha256": "5ef67161fff44c55f33a913ca476b935c80a0b1f1e753063656166ea7ec387d9"
+  },
+  {
+    "path": "docs/settings-screen.png",
+    "size": 135398,
+    "sha256": "3c4d8bf48c88ea658c17469029838d59c135ce363d6b28efeaa543d2a77c07b7"
+  },
+  {
+    "path": "docs/size-manager-screen.png",
+    "size": 153692,
+    "sha256": "23d3fed01038fc5fc42d6487fab80c513b8eb248025a1cad549ea57d9dc87cc7"
+  },
+  {
+    "path": "index.html",
+    "size": 787,
+    "sha256": "a7383c643774b8a745d148b3f284bee53e7eba1a16ad8d0b18db8b3d87177783"
+  },
+  {
+    "path": "main.js",
+    "size": 24265,
+    "sha256": "b92bae945f1e608bc368b61c3f4f486c5448412eb78b263b53c2cd90f08f2619"
+  },
+  {
+    "path": "package.json",
+    "size": 1574,
+    "sha256": "d5c5e1de5ee93b1a2d7712b947b77a18c10e14d39841b1b63b97a1f9413e4ae7"
+  },
+  {
+    "path": "preload.js",
+    "size": 1576,
+    "sha256": "b479e50c8873e497180a7aa9f06a7a439c5ff7491746ca124ea32388fee4cbd2"
+  },
+  {
+    "path": "renderer.js",
+    "size": 18719,
+    "sha256": "21e4b9ed360640c00897dfa40b8a21a164a323444b8d9f1250915d4a9ca98914"
+  },
+  {
+    "path": "scripts/check-config.js",
+    "size": 2317,
+    "sha256": "ed7b887e60bbfbee484476760fbf1ee6c20b7e3ead08db2a57516397f75b0ca8"
+  },
+  {
+    "path": "settings.css",
+    "size": 23141,
+    "sha256": "c002f7ab5eab6f52732f73bbd0f6d6116be953f0ee896d1c1f370b9d062ff715"
+  },
+  {
+    "path": "settings.html",
+    "size": 19881,
+    "sha256": "4620eaebd51d3f703c11b7038ed7215d15f0332f64cd6416e2545f2a761c725f"
+  },
+  {
+    "path": "settings.js",
+    "size": 54183,
+    "sha256": "b375eeb78c9e8076b8edb79f3a6fd94873952292f26b626e199de791a7a5bb75"
+  },
+  {
+    "path": "setup.command",
+    "size": 456,
+    "sha256": "ae42a4bb1196e237208e1a46d6f88a56f4c37d5afb87d87025c762af4598029e"
+  },
+  {
+    "path": "start.command",
+    "size": 142,
+    "sha256": "835dc1a432d1c447ea6a031722d096d265a401e11ee3bca88146b3fd62174713"
+  },
+  {
+    "path": "style.css",
+    "size": 1952,
+    "sha256": "f690644f5b882e386a73a297b2a3343cf3e8798a05f9f2eea264bc13dcccd737"
+  }
+]
